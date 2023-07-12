@@ -29,3 +29,4 @@ kubectl apply -f k8s/yaml/openmldb.yaml
 - OpenMLDB 默认会部署3个tablet和2个nameserver。至少需要部署3个k8s node. 如果node不够可以在yaml/openmldb.yaml中设置`replicas`个数
 - 目前OpenMLDB的数据默认会放在pod里边的数据盘下，没有挂载PV. 所以pod重启会导致数据丢失。
 - 部署的OpenMLDB服务只能在k8s内部访问
+- 如果要上生产环境，需要在k8s部署tablet的node节点上关闭THP. 关闭方式参考[这里](https://openmldb.ai/docs/zh/main/deploy/install_deploy.html#thp-transparent-huge-pages)
