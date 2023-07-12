@@ -25,6 +25,7 @@ kubectl create cm nameserver-config --from-file k8s/conf/nameserver.flags -n ope
 kubectl apply -f k8s/yaml/openmldb.yaml 
 ```
 注:  
+- yaml里边用的是0.8.1的版本，如果制作镜像时用的其他版本，需要在openmldb.yaml里修改下
 - OpenMLDB 默认会部署3个tablet和2个nameserver。至少需要部署3个k8s node. 如果node不够可以在yaml/openmldb.yaml中设置`replicas`个数
 - 目前OpenMLDB的数据默认会放在pod里边的数据盘下，没有挂载PV. 所以pod重启会导致数据丢失。
 - 部署的OpenMLDB服务只能在k8s内部访问
