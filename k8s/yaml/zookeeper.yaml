@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zookeeper-config
+  namespace: openmldb
+data:
+  ZOO_DATA_LOG_DIR: "/datalog"
+  ZOO_DATA_DIR: "/data"
+  ZOO_CONF_DIR: "/conf"
+  #ZOO_SERVERS: "server.1=zookeeper-0:2888:3888;2181 server.2=zookeeper-1:2888:3888;2181 server.3=zookeeper-2:2888:3888;2181"
+  ZOO_SERVERS: "server.1=zookeeper-0.zookeeper:2888:3888;2181 server.2=zookeeper-1.zookeeper:2888:3888;2181 server.3=zookeeper-2.zookeeper:2888:3888;2181"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper
+  namespace: openmldb
+  labels:
+    app: zookeeper
+spec:
+  ports:
+    - port: 2888
+      name: server
+    - port: 3888
+      name: leader-election
+    - port: 2181
+      name: client
+  clusterIP: None
+  selector:
+    app: zookeeper
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: zookeeper
+  namespace: openmldb
+spec:
+  serviceName: zookeeper
+  replicas: 3
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: OrderedReady
+  selector:
+    matchLabels:
+      app: zookeeper
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+    spec:
+      initContainers:
+        - command:
+            - /bin/sh
+            - -c
+            - |-
+              set -ex;
+              mkdir -p "$ZOO_DATA_LOG_DIR" "$ZOO_DATA_DIR" "$ZOO_CONF_DIR";
+              if [[ ! -f "$ZOO_DATA_DIR/myid" ]]; then
+                IDX="$(echo $HOSTNAME| rev | cut -d "-" -f1 | rev)"
+                SVR_INDEX=$((IDX+1))
+                echo $SVR_INDEX > "$ZOO_DATA_DIR/myid"
+              fi
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          envFrom:
+            - configMapRef:
+                name: zookeeper-config
+          image: busybox:1.28
+          imagePullPolicy: IfNotPresent
+          name: zookeeper-init
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - mountPath: /data
+              name: zookeeper-data
+              readOnly: false
+      containers:
+        - image: zookeeper
+          #imagePullPolicy: Always
+          name: zookeeper
+          ports:
+            - containerPort: 2181
+              name: client
+            - containerPort: 2888
+              name: server
+            - containerPort: 3888
+              name: leader-election
+          resources: {}
+          envFrom:
+            - configMapRef:
+                name: zookeeper-config
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /data
+              name: zookeeper-data
+              readOnly: false
+            - mountPath: /datalog
+              name: zookeeper-log
+              readOnly: false
+      volumes:
+        - name: zookeeper-data
+          emptyDir: {}
+          #hostPath:
+          #  path: /mnt/openmldb/data/zookeeper/data
+          #  type: Directory
+        - name: zookeeper-log
+          emptyDir: {}
+          #hostPath:
+          #  path: /mnt/openmldb/data/zookeeper/log
+          #  type: Directory
