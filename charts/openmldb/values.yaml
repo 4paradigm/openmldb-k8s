@@ -1,0 +1,13 @@
+# Default values for openmldb.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+tabletReplicaCount: 3
+nameserverReplicaCount: 2
+
+containerPorts:
+  tabletPort: 10921
+  nameserverPort: 7527
+
+udfLibraryDir: /openmldb/udf
+nameMountPath: /openmldb/data

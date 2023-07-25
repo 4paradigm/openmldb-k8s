@@ -1,0 +1,154 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tablet
+  namespace: {{ .Release.Namespace }}
+spec:
+  serviceName: tablet
+  replicas: {{ .Values.tabletReplicaCount }}
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: OrderedReady
+  selector:
+    matchLabels:
+      app: tablet
+  template:
+    metadata:
+      labels:
+        app: tablet
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - tablet
+            topologyKey: "kubernetes.io/hostname"
+      initContainers:
+        - command:
+            - /bin/sh
+            - -c
+            - |-
+              echo "${HOSTNAME}" >> {{ printf "%s/name.txt" .Values.nameMountPath | quote }}
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          image: busybox:1.28
+          imagePullPolicy: IfNotPresent
+          name: name-init
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - mountPath: {{ .Values.nameMountPath }}
+              name: data-dir
+              readOnly: false
+      containers:
+        - image: openmldb:r-0.8.1
+          name: tablet
+          securityContext:
+            runAsUser: 0
+          ports:
+            - containerPort: {{ .Values.containerPorts.tabletPort }}
+          resources: {}
+          env:
+          - name: COMPONENT
+            value: "tablet"
+          - name: LD_LIBRARY_PATH
+            value: {{ .Values.udfLibraryDir | quote }}
+          volumeMounts:
+            - mountPath: {{ .Values.nameMountPath }}
+              name: data-dir
+              readOnly: false
+            - mountPath: /openmldb/conf/tablet.flags
+              name: tablet-conf
+              subPath: tablet.flags
+      volumes:
+      - name: data-dir
+        emptyDir: {}
+      - name: tablet-conf
+        configMap:
+          name: {{ .Release.Name }}-configmap
+          items:
+          - key: tablet.flags
+            path: tablet.flags
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nameserver
+  namespace: {{ .Release.Namespace }}
+spec:
+  serviceName: nameserver
+  replicas: {{ .Values.nameserverReplicaCount }}
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: OrderedReady
+  selector:
+    matchLabels:
+      app: nameserver
+  template:
+    metadata:
+      labels:
+        app: nameserver
+    spec:
+      #nodeName: host02.novalocal
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - nameserver
+            topologyKey: "kubernetes.io/hostname"
+      initContainers:
+        - command:
+            - /bin/sh
+            - -c
+            - |-
+              echo "${HOSTNAME}" >> {{ printf "%s/name.txt" .Values.nameMountPath | quote }}
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          image: busybox:1.28
+          imagePullPolicy: IfNotPresent
+          name: name-init
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - mountPath: {{ .Values.nameMountPath }}
+              name: data-dir
+              readOnly: false
+      containers:
+        - image: openmldb:r-0.8.1
+          name: nameserver
+          ports:
+            - containerPort: {{ .Values.containerPorts.nameserverPort }}
+          resources: {}
+          env:
+          - name: COMPONENT
+            value: "nameserver"
+          volumeMounts:
+            - mountPath: {{ .Values.nameMountPath }}
+              name: data-dir
+              readOnly: false
+            - mountPath: /openmldb/conf/nameserver.flags
+              name: nameserver-conf
+              subPath: nameserver.flags
+      volumes:
+      - name: data-dir
+        emptyDir: {}
+      - name: nameserver-conf
+        configMap:
+          name: {{ .Release.Name }}-configmap
+          items:
+          - key: nameserver.flags
+            path: nameserver.flags
