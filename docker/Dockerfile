@@ -14,4 +14,4 @@ RUN mkdir -p /openmldb/udf
 EXPOSE 10921 7527
 
 WORKDIR /openmldb
-ENTRYPOINT ["sh", "-c", "/openmldb/bin/openmldb --flagfile=/openmldb/conf/${COMPONENT}.flags --enable_status_service=true >> ${COMPONENT}.log"]
+ENTRYPOINT ["sh", "-c", "/openmldb/bin/openmldb --flagfile=/openmldb/conf/${COMPONENT}.flags --enable_status_service=true >> logs/${COMPONENT}.log"]

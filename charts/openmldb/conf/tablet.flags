@@ -5,7 +5,7 @@
 #--endpoint=127.0.0.1:10921
 --role=tablet
 
---zk_cluster=zookeeper-0.zookeeper:2181,zookeeper-1.zookeeper:2181,zookeeper-2.zookeeper:2181
+--zk_cluster=zookeeper-0.zookeeper-headless:2181
 --zk_root_path=/openmldb
 
 # thread_pool_size建议和cpu核数一致
@@ -35,14 +35,14 @@
 #--io_pool_size=2
 #--task_pool_size=8
 # 多个磁盘使用英文符号, 隔开
---db_root_path=./db
---recycle_bin_root_path=./recycle
+--db_root_path=./data/db
+--recycle_bin_root_path=./data/recycle
 
 # HDD表数据文件路径
 # 配置数据目录，多个磁盘使用英文符号, 隔开
---hdd_root_path=./db_hdd
+--hdd_root_path=./data/db_hdd
 # 配置数据回收站目录，drop表的数据就会放在这里
---recycle_bin_hdd_root_path=./recycle_hdd
+--recycle_bin_hdd_root_path=./data/recycle_hdd
 #
 # SSD表数据文件路径（可选，默认为空）
 # 配置数据目录，多个磁盘使用英文符号, 隔开

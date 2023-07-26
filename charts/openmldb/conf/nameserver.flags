@@ -4,7 +4,7 @@
 --role=nameserver
 --use_name=true
 --data_dir=./data
---zk_cluster=zookeeper-0.zookeeper:2181,zookeeper-1.zookeeper:2181,zookeeper-2.zookeeper:2181
+--zk_cluster=zookeeper-0.zookeeper-headless:2181
 --zk_root_path=/openmldb
 
 --openmldb_log_dir=./logs

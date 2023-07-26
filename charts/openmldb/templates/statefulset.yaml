@@ -32,23 +32,24 @@ spec:
             - /bin/sh
             - -c
             - |-
-              echo "${HOSTNAME}" >> {{ printf "%s/name.txt" .Values.nameMountPath | quote }}
+              echo "${HOSTNAME}" >> {{ printf "%s/name.txt" .Values.dataMountPath | quote }}
           env:
             - name: HOSTNAME
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
           image: busybox:1.28
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           name: name-init
           securityContext:
             runAsUser: 0
           volumeMounts:
-            - mountPath: {{ .Values.nameMountPath }}
+            - mountPath: {{ .Values.dataMountPath }}
               name: data-dir
               readOnly: false
       containers:
-        - image: openmldb:r-0.8.1
+        - image: {{ .Values.image.openmldbImage }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           name: tablet
           securityContext:
             runAsUser: 0
@@ -61,15 +62,24 @@ spec:
           - name: LD_LIBRARY_PATH
             value: {{ .Values.udfLibraryDir | quote }}
           volumeMounts:
-            - mountPath: {{ .Values.nameMountPath }}
+            - mountPath: {{ .Values.dataMountPath }}
               name: data-dir
+              readOnly: false
+            - mountPath: {{ .Values.logMountPath }}
+              name: log-dir
               readOnly: false
             - mountPath: /openmldb/conf/tablet.flags
               name: tablet-conf
               subPath: tablet.flags
       volumes:
+      {{- if not .Values.persistence.enabled }}
       - name: data-dir
         emptyDir: {}
+      {{- end}}
+      {{- if not .Values.persistence.logDir.enabled }}
+      - name: log-dir
+        emptyDir: {}
+      {{- end}}
       - name: tablet-conf
         configMap:
           name: {{ .Release.Name }}-configmap
@@ -96,7 +106,6 @@ spec:
       labels:
         app: nameserver
     spec:
-      #nodeName: host02.novalocal
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -112,23 +121,24 @@ spec:
             - /bin/sh
             - -c
             - |-
-              echo "${HOSTNAME}" >> {{ printf "%s/name.txt" .Values.nameMountPath | quote }}
+              echo "${HOSTNAME}" >> {{ printf "%s/name.txt" .Values.dataMountPath | quote }}
           env:
             - name: HOSTNAME
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
           image: busybox:1.28
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           name: name-init
           securityContext:
             runAsUser: 0
           volumeMounts:
-            - mountPath: {{ .Values.nameMountPath }}
+            - mountPath: {{ .Values.dataMountPath }}
               name: data-dir
               readOnly: false
       containers:
-        - image: openmldb:r-0.8.1
+        - image: {{ .Values.image.openmldbImage }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           name: nameserver
           ports:
             - containerPort: {{ .Values.containerPorts.nameserverPort }}
@@ -137,18 +147,73 @@ spec:
           - name: COMPONENT
             value: "nameserver"
           volumeMounts:
-            - mountPath: {{ .Values.nameMountPath }}
+            - mountPath: {{ .Values.dataMountPath }}
               name: data-dir
+              readOnly: false
+            - mountPath: {{ .Values.logMountPath }}
+              name: log-dir
               readOnly: false
             - mountPath: /openmldb/conf/nameserver.flags
               name: nameserver-conf
               subPath: nameserver.flags
       volumes:
+      {{- if not .Values.persistence.dataDir.enabled }}
       - name: data-dir
         emptyDir: {}
+      {{- end}}
+      {{- if not .Values.persistence.logDir.enabled }}
+      - name: log-dir
+        emptyDir: {}
+      {{- end}}
       - name: nameserver-conf
         configMap:
           name: {{ .Release.Name }}-configmap
           items:
           - key: nameserver.flags
             path: nameserver.flags
+
+  {{- if or .Values.persistence.dataDir.enabled .Values.persistence.logDir.enabled }}
+  volumeClaimTemplates:
+    {{- if .Values.persistence.dataDir.enabled }}
+    - metadata:
+        name: data-dir
+        {{- if .Values.persistence.annotations }}
+        annotations: {{- include "common.tplvalues.render" (dict "value" .Values.persistence.annotations "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if .Values.persistence.labels }}
+        labels: {{- include "common.tplvalues.render" (dict "value" .Values.persistence.labels "context" $) | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.dataDir.size | quote }}
+        {{- if .Values.persistence.dataDir.selector }}
+        selector: {{- include "common.tplvalues.render" (dict "value" .Values.persistence.dataDir.selector "context" $) | nindent 10 }}
+        {{- end }}
+    {{- end}}
+    {{- if .Values.persistence.logDir.enabled }}
+    - metadata:
+        name: log-dir
+        {{- if .Values.persistence.annotations }}
+        annotations: {{- include "common.tplvalues.render" (dict "value" .Values.persistence.annotations "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if .Values.persistence.labels }}
+        labels: {{- include "common.tplvalues.render" (dict "value" .Values.persistence.labels "context" $) | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.logDir.size | quote }}
+        {{- if .Values.persistence.logDir.selector }}
+        selector: {{- include "common.tplvalues.render" (dict "value" .Values.persistence.logDir.selector "context" $) | nindent 10 }}
+        {{- end }}
+    {{- end}}
+  {{- end }}

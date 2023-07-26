@@ -10,4 +10,50 @@ containerPorts:
   nameserverPort: 7527
 
 udfLibraryDir: /openmldb/udf
-nameMountPath: /openmldb/data
+
+image:
+  openmldbImage: openmldb-online:0.8.1
+  pullPolicy: IfNotPresent
+
+logMountPath: /openmldb/logs
+dataMountPath: /openmldb/data
+
+# @section Persistence parameters
+
+# Enable persistence using Persistent Volume Claims
+# ref: https://kubernetes.io/docs/user-guide/persistent-volumes/
+#
+persistence:
+  # @param persistence.accessModes PVC Access modes
+  accessModes:
+    - ReadWriteOnce
+  # @param persistence.annotations Annotations for the PVC
+  annotations: {}
+  # @param persistence.labels Labels for the PVC
+  labels: {}
+  dataDir:
+    # @param persistence.enabled Enable data persistence using PVC. If false, use emptyDir
+    enabled: false
+    # @param persistence.size PVC Storage Request for data volume
+    size: 8Gi
+    # @param persistence.selector Selector to match an existing Persistent Volume for PVC
+    # If set, the PVC can't have a PV dynamically provisioned for it
+    # E.g.
+    # selector:
+    #   matchLabels:
+    #     app: my-app
+    #
+    selector: {}
+  logDir:
+    # @param persistence.enabled Enable log persistence using PVC. If false, use emptyDir
+    enabled: false
+    # @param persistence.size PVC Storage Request for log volume
+    size: 8Gi
+    # @param persistence.selector Selector to match an existing Persistent Volume for PVC
+    # If set, the PVC can't have a PV dynamically provisioned for it
+    # E.g.
+    # selector:
+    #   matchLabels:
+    #     app: my-app
+    #
+    selector: {}
