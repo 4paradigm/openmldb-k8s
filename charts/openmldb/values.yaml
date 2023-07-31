@@ -2,21 +2,24 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-tabletReplicaCount: 3
-nameserverReplicaCount: 2
-
-containerPorts:
-  tabletPort: 10921
-  nameserverPort: 7527
-
 udfLibraryDir: /openmldb/udf
 
 image:
   openmldbImage: openmldb-online:0.8.1
   pullPolicy: IfNotPresent
 
+tablet:
+  containerPorts: 10921
+  ReplicaCount: 3
+
+nameserver:
+  containerPorts: 7527
+  ReplicaCount: 2
+
+idMountPath: /openmldb/id
+dbMountPath: /openmldb/data
 logMountPath: /openmldb/logs
-dataMountPath: /openmldb/data
+
 
 # @section Persistence parameters
 
@@ -32,28 +35,16 @@ persistence:
   # @param persistence.labels Labels for the PVC
   labels: {}
   dataDir:
-    # @param persistence.enabled Enable data persistence using PVC. If false, use emptyDir
+    # @param persistence.dataDir.enabled Enable data persistence using PVC. If false, use emptyDir
     enabled: false
-    # @param persistence.size PVC Storage Request for data volume
+    # @param persistence.dataDir.size PVC Storage Request for data volume
     size: 8Gi
-    # @param persistence.selector Selector to match an existing Persistent Volume for PVC
-    # If set, the PVC can't have a PV dynamically provisioned for it
-    # E.g.
-    # selector:
-    #   matchLabels:
-    #     app: my-app
-    #
-    selector: {}
+    # @param persistence.dataDir.storageClass PVC Storage Class for OpenMLDB data volume
+    storageClass: ""
   logDir:
-    # @param persistence.enabled Enable log persistence using PVC. If false, use emptyDir
+    # @param persistence.logDir.enabled Enable log persistence using PVC. If false, use emptyDir
     enabled: false
-    # @param persistence.size PVC Storage Request for log volume
+    # @param persistence.logDir.size PVC Storage Request for log volume
     size: 8Gi
-    # @param persistence.selector Selector to match an existing Persistent Volume for PVC
-    # If set, the PVC can't have a PV dynamically provisioned for it
-    # E.g.
-    # selector:
-    #   matchLabels:
-    #     app: my-app
-    #
-    selector: {}
+    # @param persistence.logDir.storageClass PVC Storage Class for OpenMLDB log volume
+    storageClass: ""

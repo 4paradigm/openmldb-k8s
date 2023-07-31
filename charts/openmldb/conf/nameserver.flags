@@ -3,7 +3,7 @@
 --port=7527
 --role=nameserver
 --use_name=true
---data_dir=./data
+--data_dir=./id
 --zk_cluster=zookeeper-0.zookeeper-headless:2181
 --zk_root_path=/openmldb
 

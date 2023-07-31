@@ -1,7 +1,7 @@
 # tablet.conf
 --use_name=true
 --port=10921
---data_dir=./data
+--data_dir=./id
 #--endpoint=127.0.0.1:10921
 --role=tablet
 

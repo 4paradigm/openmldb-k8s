@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   serviceName: tablet
-  replicas: {{ .Values.tabletReplicaCount }}
+  replicas: {{ .Values.tablet.ReplicaCount }}
   updateStrategy:
     type: RollingUpdate
   podManagementPolicy: OrderedReady
@@ -32,7 +32,7 @@ spec:
             - /bin/sh
             - -c
             - |-
-              echo "${HOSTNAME}" >> {{ printf "%s/name.txt" .Values.dataMountPath | quote }}
+              echo "${HOSTNAME}" > {{ printf "%s/name.txt" .Values.idMountPath | quote }}
           env:
             - name: HOSTNAME
               valueFrom:
@@ -44,8 +44,8 @@ spec:
           securityContext:
             runAsUser: 0
           volumeMounts:
-            - mountPath: {{ .Values.dataMountPath }}
-              name: data-dir
+            - mountPath: {{ .Values.idMountPath }}
+              name: id-dir
               readOnly: false
       containers:
         - image: {{ .Values.image.openmldbImage }}
@@ -54,7 +54,7 @@ spec:
           securityContext:
             runAsUser: 0
           ports:
-            - containerPort: {{ .Values.containerPorts.tabletPort }}
+            - containerPort: {{ .Values.tablet.containerPorts }}
           resources: {}
           env:
           - name: COMPONENT
@@ -62,7 +62,10 @@ spec:
           - name: LD_LIBRARY_PATH
             value: {{ .Values.udfLibraryDir | quote }}
           volumeMounts:
-            - mountPath: {{ .Values.dataMountPath }}
+            - mountPath: {{ .Values.idMountPath }}
+              name: id-dir
+              readOnly: false
+            - mountPath: {{ .Values.dbMountPath }}
               name: data-dir
               readOnly: false
             - mountPath: {{ .Values.logMountPath }}
@@ -72,7 +75,9 @@ spec:
               name: tablet-conf
               subPath: tablet.flags
       volumes:
-      {{- if not .Values.persistence.enabled }}
+      - name: id-dir
+        emptyDir: {}
+      {{- if not .Values.persistence.dataDir.enabled }}
       - name: data-dir
         emptyDir: {}
       {{- end}}
@@ -86,6 +91,35 @@ spec:
           items:
           - key: tablet.flags
             path: tablet.flags
+  {{- if or .Values.persistence.dataDir.enabled .Values.persistence.logDir.enabled }}
+  volumeClaimTemplates:
+    {{- if .Values.persistence.dataDir.enabled }}
+    - metadata:
+        name: data-dir
+      spec:
+        storageClassName: {{ .Values.persistence.dataDir.storageClass }}
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.dataDir.size | quote }}
+    {{- end}}
+    {{- if .Values.persistence.logDir.enabled }}
+    - metadata:
+        name: log-dir
+      spec:
+        storageClassName: {{ .Values.persistence.logDir.storageClass }}
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.logDir.size | quote }}
+    {{- end}}
+  {{- end }}
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -94,7 +128,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   serviceName: nameserver
-  replicas: {{ .Values.nameserverReplicaCount }}
+  replicas: {{ .Values.nameserver.ReplicaCount }}
   updateStrategy:
     type: RollingUpdate
   podManagementPolicy: OrderedReady
@@ -121,7 +155,7 @@ spec:
             - /bin/sh
             - -c
             - |-
-              echo "${HOSTNAME}" >> {{ printf "%s/name.txt" .Values.dataMountPath | quote }}
+              echo "${HOSTNAME}" > {{ printf "%s/name.txt" .Values.idMountPath | quote }}
           env:
             - name: HOSTNAME
               valueFrom:
@@ -133,22 +167,22 @@ spec:
           securityContext:
             runAsUser: 0
           volumeMounts:
-            - mountPath: {{ .Values.dataMountPath }}
-              name: data-dir
+            - mountPath: {{ .Values.idMountPath }}
+              name: id-dir
               readOnly: false
       containers:
         - image: {{ .Values.image.openmldbImage }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           name: nameserver
           ports:
-            - containerPort: {{ .Values.containerPorts.nameserverPort }}
+            - containerPort: {{ .Values.nameserver.containerPorts }}
           resources: {}
           env:
           - name: COMPONENT
             value: "nameserver"
           volumeMounts:
-            - mountPath: {{ .Values.dataMountPath }}
-              name: data-dir
+            - mountPath: {{ .Values.idMountPath }}
+              name: id-dir
               readOnly: false
             - mountPath: {{ .Values.logMountPath }}
               name: log-dir
@@ -157,10 +191,8 @@ spec:
               name: nameserver-conf
               subPath: nameserver.flags
       volumes:
-      {{- if not .Values.persistence.dataDir.enabled }}
-      - name: data-dir
+      - name: id-dir
         emptyDir: {}
-      {{- end}}
       {{- if not .Values.persistence.logDir.enabled }}
       - name: log-dir
         emptyDir: {}
@@ -172,39 +204,12 @@ spec:
           - key: nameserver.flags
             path: nameserver.flags
 
-  {{- if or .Values.persistence.dataDir.enabled .Values.persistence.logDir.enabled }}
+  {{- if .Values.persistence.logDir.enabled }}
   volumeClaimTemplates:
-    {{- if .Values.persistence.dataDir.enabled }}
-    - metadata:
-        name: data-dir
-        {{- if .Values.persistence.annotations }}
-        annotations: {{- include "common.tplvalues.render" (dict "value" .Values.persistence.annotations "context" $) | nindent 10 }}
-        {{- end }}
-        {{- if .Values.persistence.labels }}
-        labels: {{- include "common.tplvalues.render" (dict "value" .Values.persistence.labels "context" $) | nindent 10 }}
-        {{- end }}
-      spec:
-        accessModes:
-        {{- range .Values.persistence.accessModes }}
-          - {{ . | quote }}
-        {{- end }}
-        resources:
-          requests:
-            storage: {{ .Values.persistence.dataDir.size | quote }}
-        {{- if .Values.persistence.dataDir.selector }}
-        selector: {{- include "common.tplvalues.render" (dict "value" .Values.persistence.dataDir.selector "context" $) | nindent 10 }}
-        {{- end }}
-    {{- end}}
-    {{- if .Values.persistence.logDir.enabled }}
     - metadata:
         name: log-dir
-        {{- if .Values.persistence.annotations }}
-        annotations: {{- include "common.tplvalues.render" (dict "value" .Values.persistence.annotations "context" $) | nindent 10 }}
-        {{- end }}
-        {{- if .Values.persistence.labels }}
-        labels: {{- include "common.tplvalues.render" (dict "value" .Values.persistence.labels "context" $) | nindent 10 }}
-        {{- end }}
       spec:
+        storageClassName: {{ .Values.persistence.logDir.storageClass }}
         accessModes:
         {{- range .Values.persistence.accessModes }}
           - {{ . | quote }}
@@ -212,8 +217,4 @@ spec:
         resources:
           requests:
             storage: {{ .Values.persistence.logDir.size | quote }}
-        {{- if .Values.persistence.logDir.selector }}
-        selector: {{- include "common.tplvalues.render" (dict "value" .Values.persistence.logDir.selector "context" $) | nindent 10 }}
-        {{- end }}
-    {{- end}}
   {{- end }}
