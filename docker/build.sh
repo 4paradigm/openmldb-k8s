@@ -29,6 +29,7 @@ curl -SLo openmldb.tar.gz ${DOWNLOAD_URL}
 mkdir openmldb
 tar xzf openmldb.tar.gz -C "openmldb" --strip-components 1
 cp Dockerfile openmldb/
+cp prob.py openmldb/tools
 rm -rf openmldb.tar.gz
 pushd openmldb
 docker build -t openmldb-online:${VERSION} .
