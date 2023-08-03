@@ -5,17 +5,19 @@
 udfLibraryDir: /openmldb/udf
 
 image:
-  openmldbImage: openmldb-online:0.8.1
+  openmldbImage: openmldb-online:0.8.2
   pullPolicy: IfNotPresent
 
 tablet:
   containerPorts: 10921
-  ReplicaCount: 3
+  replicaCount: 3
 
 nameserver:
   containerPorts: 7527
-  ReplicaCount: 2
+  replicaCount: 2
+  startupDelayTime: 30
 
+timezone: Asia/Shanghai
 idMountPath: /openmldb/id
 dbMountPath: /openmldb/data
 logMountPath: /openmldb/logs
