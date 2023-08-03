@@ -42,7 +42,7 @@ if __name__ == '__main__':
         log.error("db_root_path is empty")
         sys.exit(1)
     else:
-        test_file = db_root_path.split(",")[0]
+        test_file = db_root_path.split(",")[0] + "/prob.lock"
         if not os.path.isfile(test_file):
             log.info(f"{test_file} does not exist")
             with open(test_file, 'w') as f:
