@@ -20,6 +20,7 @@ log = logging.getLogger(__name__)
 def parse_zk_address(conf):
     zk_cluster = ''
     zk_root_path = ''
+    db_root_path = ''
     with open(conf, 'r') as f:
         for line in f.readlines():
             line = line.strip()
@@ -30,18 +31,24 @@ def parse_zk_address(conf):
                 zk_cluster = arr[1]
             elif arr[0] == "zk_root_path":
                 zk_root_path = arr[1]
-    return (zk_cluster, zk_root_path)
+            elif arr[0] == "db_root_path":
+                db_root_path = arr[1]
+    return (zk_cluster, zk_root_path, db_root_path)
 
 if __name__ == '__main__':
     conf = sys.argv[1]
-    test_file = sys.argv[2]
-    if not os.path.isfile(test_file):
-        log.info(f"{test_file} does not exist")
-        with open(test_file, 'w') as f:
-            f.write("test file");
-        sys.exit(0)
+    (zk_cluster, zk_root_path, db_root_path) = parse_zk_address(conf)
+    if db_root_path == "":
+        log.error("db_root_path is empty")
+        sys.exit(1)
+    else:
+        test_file = db_root_path.split(",")[0]
+        if not os.path.isfile(test_file):
+            log.info(f"{test_file} does not exist")
+            with open(test_file, 'w') as f:
+                f.write("test file");
+            sys.exit(0)
     openmldb_bin_path = "./bin/openmldb"
-    (zk_cluster, zk_root_path) = parse_zk_address(conf)
     if zk_cluster == "" or zk_root_path == "":
         log.error("zk conf is empty")
         sys.exit(1)
