@@ -1,0 +1,229 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tablet
+  namespace: {{ .Release.Namespace }}
+spec:
+  serviceName: tablet
+  replicas: {{ .Values.tablet.replicaCount }}
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: OrderedReady
+  selector:
+    matchLabels:
+      app: tablet
+  template:
+    metadata:
+      labels:
+        app: tablet
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - tablet
+            topologyKey: "kubernetes.io/hostname"
+      initContainers:
+        - command:
+            - /bin/sh
+            - -c
+            - |-
+              echo "${HOSTNAME}" > {{ printf "%s/name.txt" .Values.idMountPath | quote }}
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          image: busybox:1.28
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          name: name-init
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - mountPath: {{ .Values.idMountPath }}
+              name: id-dir
+              readOnly: false
+      containers:
+        - image: {{ .Values.image.openmldbImage }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          name: tablet
+          securityContext:
+            runAsUser: 0
+          ports:
+            - containerPort: {{ .Values.tablet.containerPorts }}
+          resources: {}
+          env:
+          - name: COMPONENT
+            value: "tablet"
+          - name: LD_LIBRARY_PATH
+            value: {{ .Values.udfLibraryDir | quote }}
+          - name: TZ
+            value: {{ .Values.timezone }}
+          volumeMounts:
+            - mountPath: {{ .Values.idMountPath }}
+              name: id-dir
+              readOnly: false
+            - mountPath: {{ .Values.dbMountPath }}
+              name: data-dir
+              readOnly: false
+            - mountPath: {{ .Values.logMountPath }}
+              name: log-dir
+              readOnly: false
+            - mountPath: /openmldb/conf/tablet.flags
+              name: tablet-conf
+              subPath: tablet.flags
+          {{- if .Values.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.startupProbe "enabled") "context" $) | nindent 12 }}
+            exec:
+              command: ['python', './tools/prob.py', './conf/tablet.flags']
+          {{- end }}
+      volumes:
+      - name: id-dir
+        emptyDir: {}
+      {{- if not .Values.persistence.dataDir.enabled }}
+      - name: data-dir
+        emptyDir: {}
+      {{- end}}
+      {{- if not .Values.persistence.logDir.enabled }}
+      - name: log-dir
+        emptyDir: {}
+      {{- end}}
+      - name: tablet-conf
+        configMap:
+          name: {{ .Release.Name }}-configmap
+          items:
+          - key: tablet.flags
+            path: tablet.flags
+  {{- if or .Values.persistence.dataDir.enabled .Values.persistence.logDir.enabled }}
+  volumeClaimTemplates:
+    {{- if .Values.persistence.dataDir.enabled }}
+    - metadata:
+        name: data-dir
+      spec:
+        storageClassName: {{ .Values.persistence.dataDir.storageClass }}
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.dataDir.size | quote }}
+    {{- end}}
+    {{- if .Values.persistence.logDir.enabled }}
+    - metadata:
+        name: log-dir
+      spec:
+        storageClassName: {{ .Values.persistence.logDir.storageClass }}
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.logDir.size | quote }}
+    {{- end}}
+  {{- end }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nameserver
+  namespace: {{ .Release.Namespace }}
+spec:
+  serviceName: nameserver
+  replicas: {{ .Values.nameserver.replicaCount }}
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: OrderedReady
+  selector:
+    matchLabels:
+      app: nameserver
+  template:
+    metadata:
+      labels:
+        app: nameserver
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - nameserver
+            topologyKey: "kubernetes.io/hostname"
+      initContainers:
+        - command:
+            - /bin/sh
+            - -c
+            - |-
+              echo "${HOSTNAME}" > {{ printf "%s/name.txt" .Values.idMountPath | quote }} && sleep {{.Values.nameserver.startupDelayTime}}
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          image: busybox:1.28
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          name: name-init
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - mountPath: {{ .Values.idMountPath }}
+              name: id-dir
+              readOnly: false
+      containers:
+        - image: {{ .Values.image.openmldbImage }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          name: nameserver
+          ports:
+            - containerPort: {{ .Values.nameserver.containerPorts }}
+          resources: {}
+          env:
+          - name: COMPONENT
+            value: "nameserver"
+          - name: TZ
+            value: {{ .Values.timezone }}
+          volumeMounts:
+            - mountPath: {{ .Values.idMountPath }}
+              name: id-dir
+              readOnly: false
+            - mountPath: {{ .Values.logMountPath }}
+              name: log-dir
+              readOnly: false
+            - mountPath: /openmldb/conf/nameserver.flags
+              name: nameserver-conf
+              subPath: nameserver.flags
+      volumes:
+      - name: id-dir
+        emptyDir: {}
+      {{- if not .Values.persistence.logDir.enabled }}
+      - name: log-dir
+        emptyDir: {}
+      {{- end}}
+      - name: nameserver-conf
+        configMap:
+          name: {{ .Release.Name }}-configmap
+          items:
+          - key: nameserver.flags
+            path: nameserver.flags
+
+  {{- if .Values.persistence.logDir.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: log-dir
+      spec:
+        storageClassName: {{ .Values.persistence.logDir.storageClass }}
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.logDir.size | quote }}
+  {{- end }}

@@ -1,17 +1,18 @@
-FROM centos:7.9.2009
+FROM centos/python-38-centos7
 
 ENV LANG=en_US.UTF-8 
-ENV TZ=Asia/Shanghai
 ENV COMPONENT="tablet"
 
 RUN swapoff -a
 RUN ulimit -c unlimited
 
 COPY bin/openmldb /openmldb/bin/
+COPY tools /openmldb/tools
 
-RUN mkdir -p /openmldb/udf
+VOLUME /openmldb/udf
 
 EXPOSE 10921 7527
 
 WORKDIR /openmldb
-ENTRYPOINT ["sh", "-c", "/openmldb/bin/openmldb --flagfile=/openmldb/conf/${COMPONENT}.flags --enable_status_service=true >> ${COMPONENT}.log"]
+USER root
+ENTRYPOINT ["sh", "-c", "/openmldb/bin/openmldb --flagfile=/openmldb/conf/${COMPONENT}.flags --enable_status_service=true > ${COMPONENT}.log"]

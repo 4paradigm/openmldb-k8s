@@ -1,0 +1,61 @@
+# Default values for openmldb.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  openmldbImage: openmldb-online:0.8.2
+  pullPolicy: IfNotPresent
+
+tablet:
+  containerPorts: 10921
+  replicaCount: 3
+
+nameserver:
+  containerPorts: 7527
+  replicaCount: 2
+  startupDelayTime: 30
+
+timezone: Asia/Shanghai
+idMountPath: /openmldb/id
+dbMountPath: /openmldb/data
+logMountPath: /openmldb/logs
+udfLibraryDir: /openmldb/udf
+
+# @param startupProbe.enabled Enable startupProbe on Tqblet containers
+# @param startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+# @param startupProbe.periodSeconds Period seconds for startupProbe
+# @param startupProbe.timeoutSeconds Timeout seconds for startupProbe
+# @param startupProbe.failureThreshold Failure threshold for startupProbe
+# @param startupProbe.successThreshold Success threshold for startupProbe
+#
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 1
+  failureThreshold: 60
+  successThreshold: 1
+
+# @section Persistence parameters
+
+# Enable persistence using Persistent Volume Claims
+# ref: https://kubernetes.io/docs/user-guide/persistent-volumes/
+#
+persistence:
+  # @param persistence.accessModes PVC Access modes
+  accessModes:
+    - ReadWriteOnce
+  dataDir:
+    # @param persistence.dataDir.enabled Enable data persistence using PVC. If false, use emptyDir
+    enabled: false
+    # @param persistence.dataDir.size PVC Storage Request for data volume
+    size: 8Gi
+    # @param persistence.dataDir.storageClass PVC Storage Class for OpenMLDB data volume
+    storageClass: ""
+  logDir:
+    # @param persistence.logDir.enabled Enable log persistence using PVC. If false, use emptyDir
+    enabled: false
+    # @param persistence.logDir.size PVC Storage Request for log volume
+    size: 8Gi
+    # @param persistence.logDir.storageClass PVC Storage Class for OpenMLDB log volume
+    storageClass: ""

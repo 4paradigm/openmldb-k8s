@@ -1,10 +1,10 @@
 # nameserver.conf 
 #--endpoint=127.0.0.1:7527
---zk_cluster=zookeeper-0.zookeeper:2181,zookeeper-1.zookeeper:2181,zookeeper-2.zookeeper:2181
 --port=7527
 --role=nameserver
 --use_name=true
---data_dir=./data
+--data_dir=./id
+--zk_cluster=zookeeper-0.zookeeper-headless:2181
 --zk_root_path=/openmldb
 
 --openmldb_log_dir=./logs
@@ -34,7 +34,7 @@
 
 #--replica_num=3
 #--partition_num=8
---system_table_replica_num=1
+--system_table_replica_num=2
 --enable_distsql=true
 
 # turn this option on to export openmldb metric status
