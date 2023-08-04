@@ -22,6 +22,10 @@ helm install zookeeper oci://registry-1.docker.io/bitnamicharts/zookeeper
 ```
 helm install openmldb ./charts/openmldb
 ```
+默认使用临时文件保存数据，如果pod重启数据会丢失。可以通过如下方式绑定pvc到指定storageclass
+```
+helm install openmldb ./openmldb --set persistence.dataDir.enabled=true --set  persistence.dataDir.storageClass=local-storage
+```
 
 注:  
 - 部署的OpenMLDB服务只能在k8s内部访问
