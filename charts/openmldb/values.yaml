@@ -2,8 +2,6 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-udfLibraryDir: /openmldb/udf
-
 image:
   openmldbImage: openmldb-online:0.8.2
   pullPolicy: IfNotPresent
@@ -21,6 +19,7 @@ timezone: Asia/Shanghai
 idMountPath: /openmldb/id
 dbMountPath: /openmldb/data
 logMountPath: /openmldb/logs
+udfLibraryDir: /openmldb/udf
 
 # @param startupProbe.enabled Enable startupProbe on Tqblet containers
 # @param startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
@@ -46,10 +45,6 @@ persistence:
   # @param persistence.accessModes PVC Access modes
   accessModes:
     - ReadWriteOnce
-  # @param persistence.annotations Annotations for the PVC
-  annotations: {}
-  # @param persistence.labels Labels for the PVC
-  labels: {}
   dataDir:
     # @param persistence.dataDir.enabled Enable data persistence using PVC. If false, use emptyDir
     enabled: false
