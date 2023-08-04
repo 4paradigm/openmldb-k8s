@@ -20,8 +20,7 @@ helm install zookeeper oci://registry-1.docker.io/bitnamicharts/zookeeper
 
 #### 部署OpenMLDB
 ```
-cd charts/
-helm install openmldb ./openmldb
+helm install openmldb ./charts/openmldb
 ```
 
 注:  
