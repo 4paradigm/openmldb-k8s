@@ -54,10 +54,6 @@ if __name__ == '__main__':
         sys.exit(1)
     log.info(f"zk_cluster: {zk_cluster}, zk_root_path: {zk_root_path}")
     executor = Executor(openmldb_bin_path, zk_cluster, zk_root_path)
-    if not executor.Connect().OK():
-        log.error("connect OpenMLDB failed")
-        sys.exit(1)
-    log.info("connected")
     status, result = executor.ShowOpStatus("", "")
     if status.OK():
         for record in result:
