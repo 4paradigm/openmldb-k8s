@@ -57,7 +57,6 @@ if __name__ == '__main__':
     status, result = executor.ShowOpStatus("", "")
     if status.OK():
         for record in result:
-            log.info(record)
             if record[4] == 'kDoing':
                 log.info(record)
                 sys.exit(1)
