@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   serviceName: tablet
-  replicas: {{ .Values.tablet.ReplicaCount }}
+  replicas: {{ .Values.tablet.replicaCount }}
   updateStrategy:
     type: RollingUpdate
   podManagementPolicy: OrderedReady
@@ -61,6 +61,8 @@ spec:
             value: "tablet"
           - name: LD_LIBRARY_PATH
             value: {{ .Values.udfLibraryDir | quote }}
+          - name: TZ
+            value: {{ .Values.timezone }}
           volumeMounts:
             - mountPath: {{ .Values.idMountPath }}
               name: id-dir
@@ -74,6 +76,12 @@ spec:
             - mountPath: /openmldb/conf/tablet.flags
               name: tablet-conf
               subPath: tablet.flags
+          startupProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            failureThreshold: 5
+            exec:
+              command: ['python', './tools/prob.py', './conf/tablet.flags']
       volumes:
       - name: id-dir
         emptyDir: {}
@@ -128,7 +136,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   serviceName: nameserver
-  replicas: {{ .Values.nameserver.ReplicaCount }}
+  replicas: {{ .Values.nameserver.replicaCount }}
   updateStrategy:
     type: RollingUpdate
   podManagementPolicy: OrderedReady
@@ -155,7 +163,7 @@ spec:
             - /bin/sh
             - -c
             - |-
-              echo "${HOSTNAME}" > {{ printf "%s/name.txt" .Values.idMountPath | quote }}
+              echo "${HOSTNAME}" > {{ printf "%s/name.txt" .Values.idMountPath | quote }} && sleep {{.Values.nameserver.startupDelayTime}}
           env:
             - name: HOSTNAME
               valueFrom:
@@ -180,6 +188,8 @@ spec:
           env:
           - name: COMPONENT
             value: "nameserver"
+          - name: TZ
+            value: {{ .Values.timezone }}
           volumeMounts:
             - mountPath: {{ .Values.idMountPath }}
               name: id-dir
