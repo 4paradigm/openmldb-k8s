@@ -8,7 +8,11 @@ sh build.sh 0.8.2
 ### 部署Zookeeper
 如果有可用的Zookeeper可跳过此步
 ```
-helm install zookeeper oci://registry-1.docker.io/bitnamicharts/zookeeper
+helm install zookeeper oci://registry-1.docker.io/bitnamicharts/zookeeper --set persistence.enabled=false
+```
+如果要把数据持久化，可以指定已创建的storage class
+```
+helm install zookeeper oci://registry-1.docker.io/bitnamicharts/zookeeper --set persistence.storageClass=local-storage
 ```
 更多参数设置参考[这里](https://github.com/bitnami/charts/tree/main/bitnami/zookeeper)
 
