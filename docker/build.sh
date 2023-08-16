@@ -26,6 +26,7 @@ then
     DOWNLOAD_URL="https://github.com/4paradigm/OpenMLDB/releases/download/v${VERSION}/openmldb-${VERSION}-linux.tar.gz"
 fi
 curl -SLo openmldb.tar.gz ${DOWNLOAD_URL}
+rm -rf openmldb
 mkdir openmldb
 tar xzf openmldb.tar.gz -C "openmldb" --strip-components 1
 cp Dockerfile openmldb/
