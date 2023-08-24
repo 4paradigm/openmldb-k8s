@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: tablet
+  name: {{ printf "%s-tablet" .Release.Name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  serviceName: tablet
+  serviceName: {{ printf "%s-tablet" .Release.Name }}
   replicas: {{ .Values.tablet.replicaCount }}
   updateStrategy:
     type: RollingUpdate
   podManagementPolicy: OrderedReady
   selector:
     matchLabels:
-      app: tablet
+      app: {{ printf "%s-tablet" .Release.Name }}
   template:
     metadata:
       labels:
-        app: tablet
+        app: {{ printf "%s-tablet" .Release.Name }}
     spec:
       affinity:
         podAntiAffinity:
@@ -25,7 +25,7 @@ spec:
               - key: app
                 operator: In
                 values:
-                - tablet
+                - {{ printf "%s-tablet" .Release.Name }}
             topologyKey: "kubernetes.io/hostname"
       initContainers:
         - command:
@@ -131,21 +131,21 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: nameserver
+  name: {{ printf "%s-nameserver" .Release.Name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  serviceName: nameserver
+  serviceName: {{ printf "%s-nameserver" .Release.Name }}
   replicas: {{ .Values.nameserver.replicaCount }}
   updateStrategy:
     type: RollingUpdate
   podManagementPolicy: OrderedReady
   selector:
     matchLabels:
-      app: nameserver
+      app: {{ printf "%s-nameserver" .Release.Name }}
   template:
     metadata:
       labels:
-        app: nameserver
+        app: {{ printf "%s-nameserver" .Release.Name }}
     spec:
       affinity:
         podAntiAffinity:
@@ -155,7 +155,7 @@ spec:
               - key: app
                 operator: In
                 values:
-                - nameserver
+                - {{ printf "%s-nameserver" .Release.Name }}
             topologyKey: "kubernetes.io/hostname"
       initContainers:
         - command:
