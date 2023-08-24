@@ -2,7 +2,7 @@ FROM centos/python-38-centos7
 
 ENV LANG=en_US.UTF-8 
 ENV COMPONENT="tablet"
-
+RUN pip install --no-cache-dir prettytable
 RUN swapoff -a
 RUN ulimit -c unlimited
 
