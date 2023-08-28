@@ -34,4 +34,4 @@ helm install openmldb ./openmldb --set persistence.dataDir.enabled=true --set  p
 注:  
 - 部署的OpenMLDB服务只能在k8s内部同一个namespace下访问
 - 通过此方式部署的OpenMLDB集群没有部署TaskManager模块，所以不能用[LOAD DATA](https://openmldb.ai/docs/zh/main/openmldb_sql/dml/LOAD_DATA_STATEMENT.html)和[SELECT INTO](https://openmldb.ai/docs/zh/main/openmldb_sql/dql/SELECT_INTO_STATEMENT.html)语句，也不能使用离线相关功能。
-- 如果要上生产环境，需要在k8s部署tablet的node节点上关闭THP，否则可能存在删除的表内存不能完全释放问题. 关闭方式参考[这里](https://openmldb.ai/docs/zh/main/deploy/install_deploy.html#thp-transparent-huge-pages)
+- 如果要上生产环境，需要在k8s部署tablet的node节点上关闭THP，否则可能存在删除的表内存不能完全释放问题。关闭方式参考[这里](https://openmldb.ai/docs/zh/main/deploy/install_deploy.html#thp-transparent-huge-pages)
