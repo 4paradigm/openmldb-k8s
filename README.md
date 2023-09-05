@@ -27,7 +27,7 @@ helm install openmldb ./charts/openmldb
 helm install openmldb ./charts/openmldb --set persistence.dataDir.enabled=true --set  persistence.dataDir.storageClass=local-storage
 ```
 
-默认使用4pdosc/openmldb-online镜像，如果要用自己build的镜像，可以在install时通过 --set image.openmldbImage来指定使用的镜像名称。镜像build方式参考[这里](./docker/README.md)
+默认使用4pdosc/openmldb-online镜像，如果要用自己的镜像，可以在install时通过 --set image.openmldbImage来指定使用的镜像名称。镜像制作方式参考[这里](./docker/README.md)
 ```
 helm install openmldb ./charts/openmldb --set image.openmldbImage=openmldb-online:0.8.2
 ```
