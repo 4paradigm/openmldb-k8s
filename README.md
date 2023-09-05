@@ -1,11 +1,5 @@
 # OpenMLDB 在线引擎基于 Kubernetes 部署
 
-## 制作镜像
-用docker/build.sh脚本可以制作OpenMLDB镜像。第一个参数为OpenMLDB版本号。第二个参数是OpenMLDB部署包的源，默认是从国内镜像地址拉取，如果要从github拉取可以设置第二个参数为`github`
-```bash
-cd docker
-sh build.sh 0.8.2
-```
 ## 用Helm部署OpenMLDB到Kubernetes中
 ### 部署Zookeeper
 如果有可用的Zookeeper可跳过此步
@@ -33,7 +27,7 @@ helm install openmldb ./charts/openmldb
 helm install openmldb ./charts/openmldb --set persistence.dataDir.enabled=true --set  persistence.dataDir.storageClass=local-storage
 ```
 
-默认使用4pdosc/openmldb-online镜像，如果要用自己build的镜像，可以在install时通过 --set image.openmldbImage来指定使用的镜像名称
+默认使用4pdosc/openmldb-online镜像，如果要用自己的镜像，可以在install时通过 --set image.openmldbImage来指定使用的镜像名称。镜像制作方式参考[这里](./docker/README.md)
 ```
 helm install openmldb ./charts/openmldb --set image.openmldbImage=openmldb-online:0.8.2
 ```
