@@ -1,6 +1,6 @@
 # OpenMLDB 在线引擎的 Kubernetes 部署工具
 ## 要求
-本部署工具基于 Helm Charts 进行 OpenMLDB 在线引擎基于 Kubernetes 的部署，其版本要求为：
+本部署工具基于 Helm Charts 进行 OpenMLDB 在线引擎基于 Kubernetes 的部署，在以下版本通过测试（其他低版本未验证）：
 - Kubernetes 1.19+
 - Helm 3.2.0+
 
