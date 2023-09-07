@@ -1,59 +1,64 @@
-# OpenMLDB 在线引擎的 Kubernetes 部署工具
-## 要求
-本部署工具提供 OpenMLDB 在线引擎基于 Kubernetes 的部署方案，基于 Helm Charts 实现。在以下版本通过测试（其他低版本未验证）：
+# Kubernetes deployment tool for OpenMLDB online engine
+## Request
+This deployment tool offers a Kubernetes-based deployment solution for the OpenMLDB online engine, implemented using Helm Charts. The tool has been tested and verified with the following versions:
+
 - Kubernetes 1.19+
 - Helm 3.2.0+
 
-另外，如果用户使用 Docker Hub 上的预编译 OpenMLDB 镜像，目前仅支持 OpenMLDB >= 0.8.2。用户也可以通过我们的工具自己[制作其他版本的 OpenMLDB 镜像](./docker/README.md)。
+Additionally, for users who utilize pre-compiled OpenMLDB images from Docker Hub, only OpenMLDB versions >= 0.8.2 are supported. Users also have the option to [create other versions of OpenMLDB images using our tools](https://chat.openai.com/c/docker/README.md).
 
-## 准备工作：部署 ZooKeeper
-如果用户已经有可用的 ZooKeeper，可跳过此步。否则进行安装：
+## Preparation task: Deploy ZooKeeper
+If the user already has an available ZooKeeper instance, they can skip this step. Otherwise, proceed with the installation process:
+
 ```
 helm install zookeeper oci://registry-1.docker.io/bitnamicharts/zookeeper --set persistence.enabled=false
 ```
-如果要把数据持久化，可以指定已创建的storage class
+If you want to persist data, you can specify the created storage class
+
 ```
 helm install zookeeper oci://registry-1.docker.io/bitnamicharts/zookeeper --set persistence.storageClass=local-storage
 ```
-更多参数设置参考[这里](https://github.com/bitnami/charts/tree/main/bitnami/zookeeper)
+For more parameter settings, refer to [here](https://github.com/bitnami/charts/tree/main/bitnami/zookeeper)
 
-## 部署OpenMLDB
+## Deploy OpenMLDB
 
-### 下载 repo 源代码
+### Download the repo source code
 
-下载本 repo 源代码，并且将后续工作目录设置在本 repo 的根目录：
+Download the source code of this repository and set the working directory to the root directory of the repository.
 
 ```bash
 git clone https://github.com/4paradigm/openmldb-k8s.git
 cd openmldb-k8s
 ```
 
-### 配置 ZooKeeper 地址
+### Configure ZooKeeper address
 
-修改 charts/openmldb/conf/tablet.flags 和 charts/openmldb/conf/nameserver.flags 文件中 `zk_cluster` 为实际 ZooKeeper 地址，其默认 `zk_root_path` 为 `/openmldb` 。
+Modify the `zk_cluster` in the `charts/openmldb/conf/tablet.flags` and `charts/openmldb/conf/nameserver.flags` files to the actual ZooKeeper address, with the default `zk_root_path` set to `/openmldb`.
 
-### 部署OpenMLDB
-使用 Helm 基于如下命令，可以进行一键化部署：
+###  Deploy OpenMLDB
+You can achieve one-click deployment using Helm with the following commands:
 ```
 helm install openmldb ./charts/openmldb
 ```
-用户可以通过 `--set` 命令设置更多的部署选项 ，具体支持的选项查看 [OpenMLDB Chart 配置文档](charts/openmldb/README.md)。
+Users have the flexibility to configure additional deployment options using the `--set` command. Detailed information about supported options can be found in the [OpenMLDB Chart Configuration Documentation](https://chat.openai.com/c/charts/openmldb/README.md).
 
-其中比较重要的配置项需要注意：
+Important configuration considerations include:
 
-- 默认使用临时文件保存数据，因此当pod重启后数据会丢失。推荐通过如下方式绑定pvc到指定storageclass
+- By default, temporary files are used for data storage, which means that data may be lost if the pod restarts. It is recommended to associate a Persistent Volume Claim (PVC) with a specific storage class using the following method:
 
 ```
 helm install openmldb ./charts/openmldb --set persistence.dataDir.enabled=true --set  persistence.dataDir.storageClass=local-storage
 ```
 
-- 默认使用 Docker Hub 上的 `4pdosc/openmldb-online` 镜像（仅支持 OpenMLDB >= 0.8.2），如果要用自己的镜像，可以在 `install` 时通过 `--set image.openmldbImage` 来指定使用的镜像名称。镜像制作方式参考[这里](./docker/README.md)。
+- By default, the `4pdosc/openmldb-online` image from Docker Hub is utilized (supporting OpenMLDB >= 0.8.2). If you prefer to use a custom image, you can specify the image name during installation with `--set image.openmldbImage`. For information on creating custom images, refer to the image production guidelines [here](https://chat.openai.com/c/docker/README.md).
 
 ```
 helm install openmldb ./charts/openmldb --set image.openmldbImage=openmldb-online:0.8.2
 ```
-### 注意事项
+### Things to note
 
-- 部署的 OpenMLDB 服务只能在 Kubernetes 内部同一个 namespace 下访问
-- 通过此方式部署的 OpenMLDB 集群没有部署 TaskManager 模块，所以不能用[LOAD DATA](https://openmldb.ai/docs/zh/main/openmldb_sql/dml/LOAD_DATA_STATEMENT.html)和[SELECT INTO](https://openmldb.ai/docs/zh/main/openmldb_sql/dql/SELECT_INTO_STATEMENT.html)语句，也不能使用离线相关功能。如果要将数据导入到 OpenMLDB 可以使用 OpenMLDB 的[在线导入工具](https://openmldb.ai/docs/zh/main/tutorial/data_import.html)、[OpenMLDB Connector](https://openmldb.ai/docs/zh/main/integration/online_datasources/index.html) 或者 SDK。如果要导出表的数据，可以使用[在线数据导出工具](https://openmldb.ai/docs/zh/main/tutorial/data_export.html)。
-- 如果要上生产环境，需要在 Kubernetes 部署 tablet 的物理节点上关闭 THP，否则可能存在删除的表内存不能完全释放问题。关闭方式参考[这里](https://openmldb.ai/docs/zh/main/deploy/install_deploy.html#thp-transparent-huge-pages)
+Here are some important considerations:
+
+- Deployed OpenMLDB services can only be accessed within the same namespace within Kubernetes.
+- The OpenMLDB cluster deployed using this method does not include a TaskManager module. Consequently, functionalities such as [LOAD DATA](https://openmldb.ai/docs/en/main/openmldb_sql/dml/LOAD_DATA_STATEMENT.html) and the statement and offline-related functions of [SELECT INTO](https://openmldb.ai/docs/en/main/openmldb_sql/dql/SELECT_INTO_STATEMENT.html) are not supported. If you need to import data into OpenMLDB, you can use OpenMLDB's [Online Import Tool](https://openmldb.ai/docs/en/main/tutorial/data_import.html), [OpenMLDB Connector](https://openmldb.ai/docs/en/main/integration/online_datasources/index.html), or SDK. For exporting table data, the [Online Data Export Tool](https://openmldb.ai/docs/en/main/tutorial/data_export.html) can be utilized.
+- To transition to a production environment, it's necessary to disable Transparent Huge Pages (THP) on the physical node where Kubernetes deploys the tablet. Failure to do so may result in issues where memory from deleted tables cannot be fully released. For instructions on disabling THP, please refer to [this link](https://openmldb.ai/docs/en/main/deploy/install_deploy.html#thp-transparent-huge-pages).
