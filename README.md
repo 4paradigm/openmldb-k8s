@@ -50,7 +50,7 @@ helm install openmldb ./charts/openmldb --set persistence.dataDir.enabled=true -
 - 默认使用 Docker Hub 上的 `4pdosc/openmldb-online` 镜像（仅支持 OpenMLDB >= 0.8.2），如果要用自己的镜像，可以在 `install` 时通过 `--set image.openmldbImage` 来指定使用的镜像名称。镜像制作方式参考[这里](./docker/README.md)。
 
 ```
-helm install openmldb ./charts/openmldb --set image.openmldbImage=openmldb-online:0.8.2
+helm install openmldb ./charts/openmldb --set image.openmldbImage=openmldb-online:0.8.3
 ```
 ### 注意事项
 
