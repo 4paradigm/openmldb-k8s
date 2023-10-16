@@ -30,7 +30,7 @@ cd openmldb-k8s
 
 ### 配置 ZooKeeper 地址
 
-修改 charts/openmldb/conf/tablet.flags 和 charts/openmldb/conf/nameserver.flags 文件中 `zk_cluster` 为实际 ZooKeeper 地址，其默认 `zk_root_path` 为 `/openmldb` 。
+修改 `charts/openmldb/conf/tablet.flags` 和 `charts/openmldb/conf/nameserver.flags` 文件中 `zk_cluster` 为实际 ZooKeeper 地址，其默认 `zk_root_path` 为 `/openmldb` 。
 
 ### 部署OpenMLDB
 使用 Helm 基于如下命令，可以进行一键化部署：
