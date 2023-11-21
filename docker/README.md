@@ -9,5 +9,5 @@
 
 ```bash
 cd docker
-sh build.sh 0.8.3
+sh build.sh 0.8.4
 ```
