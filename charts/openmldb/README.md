@@ -46,7 +46,7 @@ helm install openmldb ./
 # 配置Chart Values
 | Name                          | Description                              | Value                   |
 | ----------------------------- | ---------------------------------------- | ----------------------- |
-| image.openmldbImage           | OpenMLDB 镜像，默认使用 Docker Hub 上的镜像，支持 OpenMLDB >= 0.8.2；用户也可以设置为本地仓库的镜像 | openmldb-online:0.8.3   |
+| image.openmldbImage           | OpenMLDB 镜像，默认使用 Docker Hub 上的镜像，支持 OpenMLDB >= 0.8.2；用户也可以设置为本地仓库的镜像 | openmldb-online:0.8.4   |
 | image.pullPolicy              | OpenMLDB镜像拉取策略                       | IfNotPresent            |
 | tablet.containerPorts         | Tablet端口号                              | 10921                   |
 | tablet.replicaCount           | Tablet副本数                              | 3                       |
