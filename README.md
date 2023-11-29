@@ -53,7 +53,7 @@ helm install openmldb ./charts/openmldb --set persistence.dataDir.enabled=true -
 - By default, the `4pdosc/openmldb-online` image from Docker Hub is utilized (supporting OpenMLDB >= 0.8.2). If you prefer to use a custom image, you can specify the image name during installation with `--set image.openmldbImage`. For information on creating custom images, refer to the image production guidelines [here](./docker/README.md).
 
 ```
-helm install openmldb ./charts/openmldb --set image.openmldbImage=openmldb-online:0.8.3
+helm install openmldb ./charts/openmldb --set image.openmldbImage=openmldb-online:0.8.4
 ```
 ### Note
 - Deployed OpenMLDB services can only be accessed within the same namespace within Kubernetes.
