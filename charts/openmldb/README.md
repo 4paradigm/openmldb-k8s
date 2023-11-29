@@ -7,7 +7,7 @@ helm install openmldb ./
 # Chart Value Configurations
 | Name                          | Description                              | Value                   |
 | ----------------------------- | ---------------------------------------- | ----------------------- |
-| image.openmldbImage           | OpenMLDB iamge, use docker image from Docker Hub by defualt. Support version >= 0.8.2; User can configure it to be a local image | openmldb-online:0.8.3   |
+| image.openmldbImage           | OpenMLDB iamge, use docker image from Docker Hub by defualt. Support version >= 0.8.2; User can configure it to be a local image | openmldb-online:0.8.4   |
 | image.pullPolicy              | OpenMLDB pull policy                         | IfNotPresent            |
 | tablet.containerPorts         | Tablet port                                  | 10921                   |
 | tablet.replicaCount           | number of Tablet replicas                    | 3                       |
