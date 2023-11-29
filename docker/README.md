@@ -8,7 +8,7 @@ This script supports two parameters:
 
 ```bash
 cd docker
-sh build.sh 0.8.3
+sh build.sh 0.8.4
 ```
 
 
@@ -26,6 +26,6 @@ sh build.sh 0.8.3
 
 ```bash
 cd docker
-sh build.sh 0.8.3
+sh build.sh 0.8.4
 ```
 </details>
