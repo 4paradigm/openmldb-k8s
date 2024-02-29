@@ -7,7 +7,7 @@ helm install openmldb ./
 # Chart Value Configurations
 | Name                          | Description                              | Value                   |
 | ----------------------------- | ---------------------------------------- | ----------------------- |
-| image.openmldbImage           | OpenMLDB iamge, use docker image from Docker Hub by defualt. Support version >= 0.8.2; User can configure it to be a local image | openmldb-online:0.8.4   |
+| image.openmldbImage           | OpenMLDB iamge, use docker image from Docker Hub by defualt. Support version >= 0.8.2; User can configure it to be a local image | openmldb-online:0.8.5   |
 | image.pullPolicy              | OpenMLDB pull policy                         | IfNotPresent            |
 | tablet.containerPorts         | Tablet port                                  | 10921                   |
 | tablet.replicaCount           | number of Tablet replicas                    | 3                       |
@@ -46,7 +46,7 @@ helm install openmldb ./
 # 配置Chart Values
 | Name                          | Description                              | Value                   |
 | ----------------------------- | ---------------------------------------- | ----------------------- |
-| image.openmldbImage           | OpenMLDB 镜像，默认使用 Docker Hub 上的镜像，支持 OpenMLDB >= 0.8.2；用户也可以设置为本地仓库的镜像 | openmldb-online:0.8.4   |
+| image.openmldbImage           | OpenMLDB 镜像，默认使用 Docker Hub 上的镜像，支持 OpenMLDB >= 0.8.2；用户也可以设置为本地仓库的镜像 | openmldb-online:0.8.5   |
 | image.pullPolicy              | OpenMLDB镜像拉取策略                       | IfNotPresent            |
 | tablet.containerPorts         | Tablet端口号                              | 10921                   |
 | tablet.replicaCount           | Tablet副本数                              | 3                       |
